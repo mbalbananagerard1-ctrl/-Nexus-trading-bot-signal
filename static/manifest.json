@@ -1,0 +1,18 @@
+{
+  "name": "Bot de signaux de trading",
+  "short_name": "TradeSignals",
+  "description": "Analyse technique et signaux ACHAT/VENTE/NEUTRE sur actions, crypto, forex et indices.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0e1117",
+  "theme_color": "#0e1117",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
