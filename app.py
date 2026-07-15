@@ -169,35 +169,36 @@ SPINNER_HTML = """
 """
 
 
-def make_gauge(score: int, signal: str) -> go.Figure:
-    """Cadran circulaire (façon compteur) qui visualise le score du signal."""
+def make_glow_ring(score: int, signal: str) -> str:
+    """Anneau circulaire lumineux (façon 'winrate') qui visualise le score du signal."""
     color = SIGNAL_COLORS.get(signal, "#9e9e9e")
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=score,
-        number={"suffix": "", "font": {"size": 34, "color": color}},
-        gauge={
-            "axis": {"range": [-6, 6], "tickwidth": 1, "tickcolor": "#666"},
-            "bar": {"color": color, "thickness": 0.28},
-            "bgcolor": "rgba(0,0,0,0)",
-            "borderwidth": 0,
-            "steps": [
-                {"range": [-6, -3], "color": "rgba(183,28,28,0.25)"},
-                {"range": [-3, -1], "color": "rgba(229,115,115,0.20)"},
-                {"range": [-1, 1], "color": "rgba(158,158,158,0.18)"},
-                {"range": [1, 3], "color": "rgba(76,175,80,0.20)"},
-                {"range": [3, 6], "color": "rgba(10,125,44,0.25)"},
-            ],
-            "threshold": {
-                "line": {"color": color, "width": 3},
-                "thickness": 0.9,
-                "value": score,
-            },
-        },
-    ))
-    fig.update_layout(height=200, margin=dict(l=20, r=20, t=10, b=0),
-                       paper_bgcolor="rgba(0,0,0,0)", font={"color": "#c9c9c9"})
-    return fig
+    percent = max(0, min(100, ((score + 6) / 12) * 100))
+    return f"""
+    <div style="display:flex;flex-direction:column;align-items:center;padding:8px 0 22px;">
+      <div style="font-size:0.78em;color:#8a8f98;letter-spacing:2px;margin-bottom:10px;">SCORE DU SIGNAL</div>
+      <div style="
+          width:150px;height:150px;border-radius:50%;
+          background: conic-gradient({color} {percent}%, rgba(255,255,255,0.07) {percent}% 100%);
+          display:flex;align-items:center;justify-content:center;
+          box-shadow: 0 0 22px {color}55;
+          animation: tb-ring-in 0.6s ease-out;
+      ">
+        <div style="
+            width:112px;height:112px;border-radius:50%;background:#0e1117;
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+        ">
+          <div style="font-size:1.8em;font-weight:800;color:{color};text-shadow:0 0 14px {color}aa;">{score:+d}</div>
+          <div style="font-size:0.65em;color:#8a8f98;letter-spacing:1px;">sur 12</div>
+        </div>
+      </div>
+    </div>
+    <style>
+    @keyframes tb-ring-in {{
+      0%   {{ opacity:0; transform:scale(0.85); }}
+      100% {{ opacity:1; transform:scale(1); }}
+    }}
+    </style>
+    """
 
 
 def make_simple_chart(df: pd.DataFrame, symbol: str) -> go.Figure:
@@ -279,7 +280,20 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("📈 Bot d'analyse et de signaux de trading")
+st.markdown(
+    """
+    <h1 style="
+        background: linear-gradient(90deg, #4caf50, #4fc3f7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        margin-bottom: 0;
+    ">📈 Bot d'analyse et de signaux</h1>
+    """,
+    unsafe_allow_html=True,
+)
 st.caption("Outil d'aide à la décision — aucun ordre n'est passé automatiquement. Ce n'est pas un conseil financier.")
 
 WATCHLISTS = {
@@ -336,9 +350,10 @@ if run:
         # --- Bandeau signal, compact et lisible sur mobile ---
         st.markdown(
             f"""
-            <div style='background-color:{color};color:white;padding:14px 18px;
-            border-radius:10px;display:flex;justify-content:space-between;align-items:center;'>
-                <span style='font-size:1.15em;font-weight:bold;'>{symbol}</span>
+            <div style='background:linear-gradient(135deg,{color}dd,{color}99);color:white;padding:14px 18px;
+            border-radius:14px;display:flex;justify-content:space-between;align-items:center;
+            box-shadow:0 0 18px {color}44;'>
+                <span style='font-size:1.15em;font-weight:bold;letter-spacing:0.5px;'>{symbol}</span>
                 <span style='font-size:1.15em;font-weight:bold;'>{result['signal']}</span>
                 <span style='font-size:1em;'>{result['price']:.4f}</span>
             </div>
@@ -346,8 +361,8 @@ if run:
             unsafe_allow_html=True,
         )
 
-        # --- Cadran du score, façon compteur ---
-        st.plotly_chart(make_gauge(result["score"], result["signal"]), use_container_width=True, config={"displayModeBar": False})
+        # --- Anneau lumineux du score, façon "winrate" ---
+        st.markdown(make_glow_ring(result["score"], result["signal"]), unsafe_allow_html=True)
 
         # --- Graphique simple, toujours visible ---
         st.plotly_chart(make_simple_chart(df, symbol), use_container_width=True, config={"displayModeBar": False})
@@ -370,10 +385,10 @@ if run:
 
         st.markdown(
             f"""
-            <div style='margin-top:8px;padding:16px;border-radius:10px;
-            border:2px solid {color};text-align:center;'>
-                <div style='font-size:0.85em;color:#9e9e9e;letter-spacing:1px;'>VERDICT</div>
-                <div style='font-size:1.6em;font-weight:bold;color:{color};'>{verdict_icon} {verdict_text}</div>
+            <div style='margin-top:8px;padding:16px;border-radius:14px;
+            border:2px solid {color};text-align:center;box-shadow:0 0 16px {color}33;'>
+                <div style='font-size:0.85em;color:#9e9e9e;letter-spacing:2px;'>VERDICT</div>
+                <div style='font-size:1.6em;font-weight:800;color:{color};text-shadow:0 0 10px {color}66;'>{verdict_icon} {verdict_text}</div>
             </div>
             """,
             unsafe_allow_html=True,
